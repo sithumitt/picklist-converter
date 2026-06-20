@@ -190,7 +190,7 @@ PRODUCT_MAPPING = {
     "strawberry wafer 90gm": "ස්ටෝබරි වේපස් 90",
     "strawberry wafer 200gm": "ස්ටෝබරි වේපස් 200",
     "strawberry wafer 360gm x 3pks": "ස්ටෝබරි වේපස් 360",
-    "soya sauce squeeasy 180ml":"සෝයා සෝස් ස්කීසි 180ml",
+    "soya sauce squeeasy 180ml":"සෝස් පැකට් 180ml",
     "tomato sachet 15g": "සෝස් පැකට් 15",
     "tomato sauce 110gr - pouch": "සෝස් පැකට් 110",
     "tomato sauce 400g - pouch": "සෝස් පැකට් 400",
@@ -244,13 +244,20 @@ if uploaded_file is not None:
                     
                     for english_key, sinhala_val in PRODUCT_MAPPING.items():
                         if english_key in normalized_line_lower:
-                            batch_match = re.search(r'(CG\d)', normalized_line)
+                            # 1. Primary Strategy: Look for standard batch identifiers (like CG1, CG2, IN1 etc.)
+                            batch_match = re.search(r'\b([A-Z]{2}\d)\b', normalized_line)
                             
                             qty1, qty2 = "0", "0"
                             if batch_match:
                                 pre_batch_text = normalized_line[:batch_match.start()].strip()
                                 all_numbers = re.findall(r'\d+', pre_batch_text)
-                                
+                                if len(all_numbers) >= 2:
+                                    qty1 = all_numbers[-2]
+                                    qty2 = all_numbers[-1]
+                            else:
+                                # 2. Fallback Strategy: If no batch code is found, intelligently grab trailing numbers from the end of the line
+                                # (Filters out prices containing decimals like 180.00)
+                                all_numbers = re.findall(r'\b\d+\b', normalized_line)
                                 if len(all_numbers) >= 2:
                                     qty1 = all_numbers[-2]
                                     qty2 = all_numbers[-1]
