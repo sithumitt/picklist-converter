@@ -190,6 +190,7 @@ PRODUCT_MAPPING = {
     "tomato sachet 15g": "සෝස් පැකට් 15",
     "tomato sauce 110gr - pouch": "සෝස් පැකට් 110",
     "tomato sauce 400g - pouch": "සෝස් පැකට් 400",
+    "tomato sauce 400g " : "සෝස් වීදුරු බෝතලේ 400 ",
     "vanilla wafer 40gm": "වැනිලා වේපස් 40",
     "vanilla wafer 90gm": "වැනිලා වේපස් 90",
     "vanilla wafer 200gm": "වැනිලා වේපස් 200",
