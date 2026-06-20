@@ -13,18 +13,22 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Custom CSS for soft, elegant colors and layout styling
+# Custom CSS for soft light blue colors and clear black text styling
 st.markdown("""
     <style>
-    /* Main background and font styling */
-    .main {
-        background-color: #FAFAFA;
+    /* Main background and global font color */
+    .stApp {
+        background-color: #F0F4F8;
+    }
+    
+    html, body, [data-testid="stWidgetLabel"], p, div, h1, h2, h3, span {
+        color: #000000 !important;
         font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
     }
     
     /* Header title styling */
     .main-title {
-        color: #2C3E50;
+        color: #0D47A1;
         font-size: 2.4rem;
         font-weight: 600;
         text-align: center;
@@ -32,32 +36,46 @@ st.markdown("""
     }
     
     .sub-title {
-        color: #7F8C8D;
+        color: #333333;
         font-size: 1.1rem;
         text-align: center;
         margin-bottom: 2.5rem;
     }
     
-    /* Elegant card styling for data preview */
+    /* Light Blue elegant card styling for data preview */
     .preview-card {
         background-color: #FFFFFF;
         border-radius: 8px;
         padding: 1.5rem;
         box-shadow: 0 4px 6px rgba(0,0,0,0.02), 0 1px 3px rgba(0,0,0,0.05);
-        border: 1px solid #E0E0E0;
+        border: 2px solid #BBDEFB;
         margin-top: 1.5rem;
     }
     
-    /* Step indicators style */
+    /* Soft Blue Step indicators style */
     .step-container {
-        background-color: #F4F6F7;
+        background-color: #E3F2FD;
         padding: 1rem;
-        border-left: 4px solid #A3E4D7;
+        border-left: 5px solid #2196F3;
         border-radius: 4px;
         margin-bottom: 1.5rem;
+        color: #000000;
+        font-weight: 500;
     }
     
-    /* Hide default Streamlit footer metrics */
+    /* File Uploader custom styling adjustments */
+    [data-testid="stFileUploaderDropzone"] {
+        background-color: #FFFFFF;
+        border: 2px dashed #90CAF9 !important;
+        border-radius: 8px;
+    }
+    
+    /* Custom style tables to maintain black text grid lines */
+    table {
+        color: #000000 !important;
+    }
+    
+    /* Hide default Streamlit decorations */
     footer {visibility: hidden;}
     #MainMenu {visibility: hidden;}
     </style>
@@ -146,7 +164,7 @@ PRODUCT_MAPPING = {
     "orange sparkling 250ml": "දොඩම්",
     "passion fruit nectar 1l": "ස්පාක්ලින්",
     "ride classic drink 250ml": "රයිට් නිල්",
-    "ride redberry drink 250ml": "රයිට් රතු",
+    "ride redberry drink 250ml": "රයිට් رතු",
     "ride sugar free drink 250ml": "රයිට් සීනි නැති",
     "s/berry flv. melon jam200g": "ස්ටෝබරි ජෑම් 200",
     "s/berry melon jam cup100g": "ස්ටෝබරි ජෑම් 100 C",
@@ -167,14 +185,14 @@ PRODUCT_MAPPING = {
     "woodapple nectar 500ml": "දිවුල් බීම 500"
 }
 
-# UI Elegant Header Titles
+# UI Header Layout Elements
 st.markdown('<div class="main-title">📋 පික් ලිස්ට් එකේ බඩු පරිවර්තකය</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-title">ඔබේ Picklist PDF එක සිංහල Word ගොනුවක් බවට ක්ෂණිකව පරිවර්තනය කරන්න</div>', unsafe_allow_html=True)
 
-# Step 1 Container Instruction
+# Step 1 Container Instruction Banner
 st.markdown('<div class="step-container"><strong>පියවර 1:</strong> ඔබේ මුල් පිටපතේ PDF ගොනුව පහත කොටුවට එක් කරන්න (Upload PDF File)</div>', unsafe_allow_html=True)
 
-# Styled File Uploader Widget
+# File Uploader
 uploaded_file = st.file_uploader("", type=["pdf"], label_visibility="collapsed")
 
 if uploaded_file is not None:
@@ -230,22 +248,22 @@ if uploaded_file is not None:
     if matched_count > 0:
         st.success(f"🎉 සාර්ථකයි! ගැළපෙන භාණ්ඩ පේළි {matched_count} ක් සාර්ථකව පරිවර්තනය කරන ලදී.")
         
-        # Step 2 Container Instruction
+        # Step 2 Container Instruction Banner
         st.markdown('<div class="step-container"><strong>පියවර 2:</strong> සකස් කරන ලද නව දත්ත පෙරදසුන පරීක්ෂා කර බාගත කරගන්න</div>', unsafe_allow_html=True)
         
-        # Displaying grid preview inside a clean layout wrapper
+        # Displaying preview inside the custom layout card
         st.markdown('<div class="preview-card">', unsafe_allow_html=True)
         st.dataframe(preview_data, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
         
         st.write("")  # Spacer Element
         
-        # Render clean output file to bytes buffer
+        # Render output document to byte storage array stream
         doc_stream = io.BytesIO()
         doc.save(doc_stream)
         doc_stream.seek(0)
         
-        # Elegant styled download component action button
+        # Action download button
         st.download_button(
             label="📥 නිපදවන ලද Word ලිපිගොනුව බාගත කරගන්න (Download Document)",
             data=doc_stream,
