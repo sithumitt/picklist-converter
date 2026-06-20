@@ -95,6 +95,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Hardcoded Product Mapping Dictionary
+# UPDATED KEYS: Shortened complex strings to key identifiers to handle variance in raw files
 PRODUCT_MAPPING = {
     "aloe vera drink 1l": "කෝමාරිකා බීම ලීටර් 1",
     "aloe vera drink 200ml": "කෝමාරිකා බීම 200",
@@ -181,9 +182,11 @@ PRODUCT_MAPPING = {
     "ride classic drink 250ml": "රයිට් නිල්",
     "ride redberry drink 250ml": "රයිට් රතු",
     "ride sugar free drink 250ml": "රයිට් සීනි නැති",
-    "s/berry flv. melon jam200g": "ස්ටෝබරි ජෑම් 200",
-    "s/berry flv. melon jam300g": "ස්ටෝබරි ජෑම් 300",
     "s/berry melon jam cup100g": "ස්ටෝබරි ජෑම් 100 C",
+    "berry flv melon jam200g": "ස්ටෝබරි ජෑම් 200",
+    "berry flv melon jam300g": "ස්ටෝබරි ජෑම් 300",
+    "strawberry 200g": "ස්ටෝබරි ජෑම් 200", 
+    "strawberry 300g": "ස්ටෝබරි ජෑම් 300", # Flexible Fallback matcher
     "sesame cookies 120gm": "සෙසමිකුකීස්",
     "strawberry sparkling 250ml": "ස්ටෝබරි ස්පාක්ලින්",
     "strawberry wafer 40gm": "ස්ටෝබරි වේපස් 40",
@@ -208,9 +211,7 @@ def clean_text_for_matching(text):
     """Removes slashes, dots, quotes, and extra whitespace for fuzzy matching."""
     if not text:
         return ""
-    # Remove quotes, slashes, dots, and hyphens
     cleaned = text.replace('"', '').replace('/', ' ').replace('.', ' ').replace('-', ' ')
-    # Standardize spaces to a single space, lowercase
     return " ".join(cleaned.lower().split())
 
 # UI Header Layout Elements
@@ -240,23 +241,35 @@ if uploaded_file is not None:
         matched_count = 0
         preview_data = []
         
+        # Keep track of matched entries to avoid duplicate table assignments
+        processed_lines = set()
+        
         with pdfplumber.open(uploaded_file) as pdf:
-            for page in pdf.pages:
+            for page_num, page in enumerate(pdf.pages):
                 text_content = page.extract_text()
                 if not text_content:
                     continue
                 
                 lines = text_content.split('\n')
-                for line in lines:
+                for line_idx, line in enumerate(lines):
+                    line_key = f"{page_num}-{line_idx}"
                     normalized_line = line.replace('"', '').strip()
-                    # Clean the line text completely for matching
                     matchable_line = clean_text_for_matching(normalized_line)
                     
                     for english_key, sinhala_val in PRODUCT_MAPPING.items():
-                        # Clean the key completely as well
                         matchable_key = clean_text_for_matching(english_key)
                         
+                        # Flexible Condition check: Exact match OR both keywords exist independently in line
+                        is_match = False
                         if matchable_key in matchable_line:
+                            is_match = True
+                        elif "strawberry" in matchable_key and "300" in matchable_key:
+                            if "strawberry" in matchable_line and "300" in matchable_line:
+                                is_match = True
+                                
+                        if is_match and line_key not in processed_lines:
+                            processed_lines.add(line_key)
+                            
                             # 1. Primary Strategy: Look for standard batch identifiers (like CG1, CG2, IN1 etc.)
                             batch_match = re.search(r'\b([A-Z]{2}\d)\b', normalized_line)
                             
