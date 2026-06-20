@@ -163,7 +163,7 @@ PRODUCT_MAPPING = {
     "marie 100gm": "මාරි 100",
     "marie 200gm": "මාරි 200",
     "marie 500gm": "මාරි 500",
-    "mayonnaise 200g-pouch": "මයෝනාඊස් 200",
+    "mayonnaise 200g pouch": "මයෝනාඊස් 200",
     "milk shorties 220gm": "කිරි ෂෝටීස් 220",
     "milki cookies 120gm": "මීල්කි කුකීස්",
     "mixed fruit jam cup 100g": "මිශ්‍ර ජෑම් කප් 100",
