@@ -13,7 +13,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Custom CSS for soft light blue colors and clear black text styling
+# Custom CSS for soft light blue palette, black fonts, and light green table hovers
 st.markdown("""
     <style>
     /* Main background and global font color */
@@ -50,6 +50,19 @@ st.markdown("""
         box-shadow: 0 4px 6px rgba(0,0,0,0.02), 0 1px 3px rgba(0,0,0,0.05);
         border: 2px solid #BBDEFB;
         margin-top: 1.5rem;
+    }
+    
+    /* Force Dataframe tables to use light green highlight color during hovers instead of black */
+    [data-testid="stTable"] tr:hover, 
+    [data-testid="stDataFrame"] tr:hover,
+    div[data-role="grid"] div[role="row"]:hover {
+        background-color: #E8F5E9 !important;
+    }
+    
+    /* Ensure internal canvas data viewer matches light cell styling accents */
+    .glideDataEditor-canvas {
+        --bg-color-hover: #E8F5E9 !important;
+        --accent-color: #C8E6C9 !important;
     }
     
     /* Soft Blue Step indicators style */
@@ -164,7 +177,7 @@ PRODUCT_MAPPING = {
     "orange sparkling 250ml": "දොඩම්",
     "passion fruit nectar 1l": "ස්පාක්ලින්",
     "ride classic drink 250ml": "රයිට් නිල්",
-    "ride redberry drink 250ml": "රයිට් رතු",
+    "ride redberry drink 250ml": "රයිට් රතු",
     "ride sugar free drink 250ml": "රයිට් සීනි නැති",
     "s/berry flv. melon jam200g": "ස්ටෝබරි ජෑම් 200",
     "s/berry melon jam cup100g": "ස්ටෝබරි ජෑම් 100 C",
