@@ -1,10 +1,11 @@
-import streamlit as st
+import os
 import io
 import re
 import pdfplumber
 from docx import Document
+import streamlit as st
 
-# Set up the web page title, icon, and sidebar layout
+# Set up the web page title, icon, and layout profile
 st.set_page_config(
     page_title="පික් ලිස්ට් පරිවර්තකය", 
     page_icon="📋", 
@@ -177,7 +178,6 @@ st.markdown('<div class="step-container"><strong>පියවර 1:</strong> ඔ
 uploaded_file = st.file_uploader("", type=["pdf"], label_visibility="collapsed")
 
 if uploaded_file is not None:
-    # Processing state feedback with soft visual element
     with st.spinner("දත්ත විශ්ලේෂණය කරමින් පවතී. කරුණාකර රැඳී සිටින්න..."):
         # Initialize structured Word Document
         doc = Document()
@@ -228,19 +228,30 @@ if uploaded_file is not None:
                             break 
 
     if matched_count > 0:
-        # Elegant customized success callout
         st.success(f"🎉 සාර්ථකයි! ගැළපෙන භාණ්ඩ පේළි {matched_count} ක් සාර්ථකව පරිවර්තනය කරන ලදී.")
         
         # Step 2 Container Instruction
         st.markdown('<div class="step-container"><strong>පියවර 2:</strong> සකස් කරන ලද නව දත්ත පෙරදසුන පරීක්ෂා කර බාගත කරගන්න</div>', unsafe_allow_html=True)
         
-        # Displaying an elegant interactive grid preview inside a clean layout wrapper
+        # Displaying grid preview inside a clean layout wrapper
         st.markdown('<div class="preview-card">', unsafe_allow_html=True)
         st.dataframe(preview_data, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
         
-        st.write("") # Spacer Element
+        st.write("")  # Spacer Element
         
-        # Render clean output file to byte array memory stream
+        # Render clean output file to bytes buffer
         doc_stream = io.BytesIO()
-        doc.save(
+        doc.save(doc_stream)
+        doc_stream.seek(0)
+        
+        # Elegant styled download component action button
+        st.download_button(
+            label="📥 නිපදවන ලද Word ලිපිගොනුව බාගත කරගන්න (Download Document)",
+            data=doc_stream,
+            file_name="පික්_ලිස්ට්_එකේ_බඩු.docx",
+            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            use_container_width=True
+        )
+    else:
+        st.error("⚠️ දෝෂයකි: අප්ලෝඩ් කරන ලද PDF ගොනුවේ තිබූ කිසිදු භාණ්ඩයක් අපගේ නාමාවලිය සමඟ ගැළපුණේ නැත. කරුණාකර වෙනත් ගොනුවක් උත්සාහ කරන්න.")
