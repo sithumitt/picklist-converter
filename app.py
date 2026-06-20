@@ -4,8 +4,63 @@ import re
 import pdfplumber
 from docx import Document
 
-# Set up the web page title and icon
-st.set_page_config(page_title="පික් ලිස්ට් පරිවර්තකය", page_icon="📝", layout="centered")
+# Set up the web page title, icon, and sidebar layout
+st.set_page_config(
+    page_title="පික් ලිස්ට් පරිවර්තකය", 
+    page_icon="📋", 
+    layout="centered",
+    initial_sidebar_state="collapsed"
+)
+
+# Custom CSS for soft, elegant colors and layout styling
+st.markdown("""
+    <style>
+    /* Main background and font styling */
+    .main {
+        background-color: #FAFAFA;
+        font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+    }
+    
+    /* Header title styling */
+    .main-title {
+        color: #2C3E50;
+        font-size: 2.4rem;
+        font-weight: 600;
+        text-align: center;
+        margin-bottom: 0.5rem;
+    }
+    
+    .sub-title {
+        color: #7F8C8D;
+        font-size: 1.1rem;
+        text-align: center;
+        margin-bottom: 2.5rem;
+    }
+    
+    /* Elegant card styling for data preview */
+    .preview-card {
+        background-color: #FFFFFF;
+        border-radius: 8px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02), 0 1px 3px rgba(0,0,0,0.05);
+        border: 1px solid #E0E0E0;
+        margin-top: 1.5rem;
+    }
+    
+    /* Step indicators style */
+    .step-container {
+        background-color: #F4F6F7;
+        padding: 1rem;
+        border-left: 4px solid #A3E4D7;
+        border-radius: 4px;
+        margin-bottom: 1.5rem;
+    }
+    
+    /* Hide default Streamlit footer metrics */
+    footer {visibility: hidden;}
+    #MainMenu {visibility: hidden;}
+    </style>
+""", unsafe_allow_html=True)
 
 # Hardcoded Product Mapping Dictionary
 PRODUCT_MAPPING = {
@@ -111,86 +166,81 @@ PRODUCT_MAPPING = {
     "woodapple nectar 500ml": "දිවුල් බීම 500"
 }
 
-st.title("📋 පික් ලිස්ට් එකේ බඩු පරිවර්තකය")
-st.write("ඔබේ PDF ගොනුව මෙතැනට අප්ලෝඩ් කර Word (Docx) ගොනුව බාගත කරගන්න.")
+# UI Elegant Header Titles
+st.markdown('<div class="main-title">📋 පික් ලිස්ට් එකේ බඩු පරිවර්තකය</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-title">ඔබේ Picklist PDF එක සිංහල Word ගොනුවක් බවට ක්ෂණිකව පරිවර්තනය කරන්න</div>', unsafe_allow_html=True)
 
-# UI Element: File Uploader
-uploaded_file = st.file_uploader("PDF එක තෝරන්න (Choose PDF file)", type=["pdf"])
+# Step 1 Container Instruction
+st.markdown('<div class="step-container"><strong>පියවර 1:</strong> ඔබේ මුල් පිටපතේ PDF ගොනුව පහත කොටුවට එක් කරන්න (Upload PDF File)</div>', unsafe_allow_html=True)
+
+# Styled File Uploader Widget
+uploaded_file = st.file_uploader("", type=["pdf"], label_visibility="collapsed")
 
 if uploaded_file is not None:
-    st.info("ගොනුව සකසමින් පවතී, කරුණාකර රැඳී සිටින්න...")
-    
-    # Initialize Word Document
-    doc = Document()
-    doc.add_heading('පික් ලිස්ට් එකේ බඩු', level=1)
-    
-    table = doc.add_table(rows=1, cols=3)
-    table.style = 'Table Grid'
-    
-    hdr_cells = table.rows[0].cells
-    hdr_cells[0].text = 'භාණ්ඩය'
-    hdr_cells[1].text = 'කේස්'
-    hdr_cells[2].text = 'කෑලි'
-    
-    matched_count = 0
-    preview_data = [] # To show a sneak peek in the web UI
-    
-    # Read the PDF content from the upload stream
-    with pdfplumber.open(uploaded_file) as pdf:
-        for page in pdf.pages:
-            text_content = page.extract_text()
-            if not text_content:
-                continue
-            
-            lines = text_content.split('\n')
-            for line in lines:
-                normalized_line = line.replace('"', '').strip()
-                normalized_line_lower = normalized_line.lower()
+    # Processing state feedback with soft visual element
+    with st.spinner("දත්ත විශ්ලේෂණය කරමින් පවතී. කරුණාකර රැඳී සිටින්න..."):
+        # Initialize structured Word Document
+        doc = Document()
+        doc.add_heading('පික් ලිස්ට් එකේ බඩු', level=1)
+        
+        table = doc.add_table(rows=1, cols=3)
+        table.style = 'Table Grid'
+        
+        hdr_cells = table.rows[0].cells
+        hdr_cells[0].text = 'භාණ්ඩය'
+        hdr_cells[1].text = 'කේස්'
+        hdr_cells[2].text = 'කෑලි'
+        
+        matched_count = 0
+        preview_data = []
+        
+        with pdfplumber.open(uploaded_file) as pdf:
+            for page in pdf.pages:
+                text_content = page.extract_text()
+                if not text_content:
+                    continue
                 
-                for english_key, sinhala_val in PRODUCT_MAPPING.items():
-                    if english_key in normalized_line_lower:
-                        batch_match = re.search(r'(CG\d)', normalized_line)
-                        
-                        qty1, qty2 = "0", "0"
-                        if batch_match:
-                            pre_batch_text = normalized_line[:batch_match.start()].strip()
-                            all_numbers = re.findall(r'\d+', pre_batch_text)
+                lines = text_content.split('\n')
+                for line in lines:
+                    normalized_line = line.replace('"', '').strip()
+                    normalized_line_lower = normalized_line.lower()
+                    
+                    for english_key, sinhala_val in PRODUCT_MAPPING.items():
+                        if english_key in normalized_line_lower:
+                            batch_match = re.search(r'(CG\d)', normalized_line)
                             
-                            if len(all_numbers) >= 2:
-                                qty1 = all_numbers[-2]
-                                qty2 = all_numbers[-1]
-                        
-                        # Add to Word Doc table
-                        row_cells = table.add_row().cells
-                        row_cells[0].text = sinhala_val
-                        row_cells[1].text = qty1
-                        row_cells[2].text = qty2
-                        
-                        # Save a sample for the UI preview table
-                        preview_data.append({"භාණ්ඩය": sinhala_val, "කේස්": qty1, "කෑලි": qty2})
-                        matched_count += 1
-                        break 
+                            qty1, qty2 = "0", "0"
+                            if batch_match:
+                                pre_batch_text = normalized_line[:batch_match.start()].strip()
+                                all_numbers = re.findall(r'\d+', pre_batch_text)
+                                
+                                if len(all_numbers) >= 2:
+                                    qty1 = all_numbers[-2]
+                                    qty2 = all_numbers[-1]
+                            
+                            row_cells = table.add_row().cells
+                            row_cells[0].text = sinhala_val
+                            row_cells[1].text = qty1
+                            row_cells[2].text = qty2
+                            
+                            preview_data.append({"භාණ්ඩය": sinhala_val, "කේස්": qty1, "කෑලි": qty2})
+                            matched_count += 1
+                            break 
 
     if matched_count > 0:
-        st.success(f"සාර්ථකයි! භාණ්ඩ පේළි {matched_count} ක් සොයාගන්නා ලදී.")
+        # Elegant customized success callout
+        st.success(f"🎉 සාර්ථකයි! ගැළපෙන භාණ්ඩ පේළි {matched_count} ක් සාර්ථකව පරිවර්තනය කරන ලදී.")
         
-        # Display an interactive preview table directly on the webpage
-        st.subheader("දත්ත පෙරදසුන (Data Preview)")
-        st.table(preview_data[:10]) # Show the first 10 rows as preview
-        if matched_count > 10:
-            st.write(f"...සහ තවත් පේළි {matched_count - 10}ක් බාගත වන ගොනුවේ අඩංගු වේ.")
+        # Step 2 Container Instruction
+        st.markdown('<div class="step-container"><strong>පියවර 2:</strong> සකස් කරන ලද නව දත්ත පෙරදසුන පරීක්ෂා කර බාගත කරගන්න</div>', unsafe_allow_html=True)
         
-        # Save document structure to bytes buffer
+        # Displaying an elegant interactive grid preview inside a clean layout wrapper
+        st.markdown('<div class="preview-card">', unsafe_allow_html=True)
+        st.dataframe(preview_data, use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+        st.write("") # Spacer Element
+        
+        # Render clean output file to byte array memory stream
         doc_stream = io.BytesIO()
-        doc.save(doc_stream)
-        doc_stream.seek(0)
-        
-        # UI Element: Download Button
-        st.download_button(
-            label="📄 Word File එක බාගත කරගන්න (Download)",
-            data=doc_stream,
-            file_name="පික්_ලිස්ට්_එකේ_බඩු.docx",
-            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-        )
-    else:
-        st.error("කිසිදු ගැළපෙන භාණ්ඩයක් සොයාගත නොහැකි විය. කරුණාකර නිවැරදි PDF එකක්දැයි පරීක්ෂා කරන්න.")
+        doc.save(
