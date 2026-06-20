@@ -176,7 +176,7 @@ PRODUCT_MAPPING = {
     "nice 430gm": "නායිස් 430",
     "onion byte 30gm": "අනියන් බයිට් 30",
     "orange nectar 500ml": "දොඩම් බීම 500",
-    "orange sparkling 250ml": "දොඩම් ස්පාක්ලින් ",
+    "orange sparkling 250ml": "දොඩම් ස්පාක්ලින්",
     "passion fruit nectar 1l": "පැෂන්ෆෲට් නෙක්ටා 1L",
     "ride classic drink 250ml": "රයිට් නිල්",
     "ride redberry drink 250ml": "රයිට් රතු",
@@ -190,12 +190,12 @@ PRODUCT_MAPPING = {
     "strawberry wafer 90gm": "ස්ටෝබරි වේපස් 90",
     "strawberry wafer 200gm": "ස්ටෝබරි වේපස් 200",
     "strawberry wafer 360gm x 3pks": "ස්ටෝබරි වේපස් 360",
-    "soya sauce squeeasy 180ml":"සෝස් පැකට් 180ml",
+    "soya sauce squeeasy 180ml": "සෝස් පැකට් 180ml",
     "tomato sachet 15g": "සෝස් පැකට් 15",
     "tomato sauce 110gr - pouch": "සෝස් පැකට් 110",
     "tomato sauce 400g - pouch": "සෝස් පැකට් 400",
-    "tomato sauce 400g " : "සෝස් වීදුරු බෝතලේ 400 ",
-    "tomato sauce 200gr " : "සෝස් වීදුරු බෝතලේ 200 ",
+    "tomato sauce 400g ": "සෝස් වීදුරු බෝතලේ 400 ",
+    "tomato sauce 200gr ": "සෝස් වීදුරු බෝතලේ 200 ",
     "vanilla wafer 40gm": "වැනිලා වේපස් 40",
     "vanilla wafer 90gm": "වැනිලා වේපස් 90",
     "vanilla wafer 200gm": "වැනිලා වේපස් 200",
@@ -203,6 +203,15 @@ PRODUCT_MAPPING = {
     "woodapple nectar 200ml": "දිවුල් බීම 200",
     "woodapple nectar 500ml": "දිවුල් බීම 500"
 }
+
+def clean_text_for_matching(text):
+    """Removes slashes, dots, quotes, and extra whitespace for fuzzy matching."""
+    if not text:
+        return ""
+    # Remove quotes, slashes, dots, and hyphens
+    cleaned = text.replace('"', '').replace('/', ' ').replace('.', ' ').replace('-', ' ')
+    # Standardize spaces to a single space, lowercase
+    return " ".join(cleaned.lower().split())
 
 # UI Header Layout Elements
 st.markdown('<div class="main-title">📋 පික් ලිස්ට් එකේ බඩු පරිවර්තකය</div>', unsafe_allow_html=True)
@@ -240,10 +249,14 @@ if uploaded_file is not None:
                 lines = text_content.split('\n')
                 for line in lines:
                     normalized_line = line.replace('"', '').strip()
-                    normalized_line_lower = normalized_line.lower()
+                    # Clean the line text completely for matching
+                    matchable_line = clean_text_for_matching(normalized_line)
                     
                     for english_key, sinhala_val in PRODUCT_MAPPING.items():
-                        if english_key in normalized_line_lower:
+                        # Clean the key completely as well
+                        matchable_key = clean_text_for_matching(english_key)
+                        
+                        if matchable_key in matchable_line:
                             # 1. Primary Strategy: Look for standard batch identifiers (like CG1, CG2, IN1 etc.)
                             batch_match = re.search(r'\b([A-Z]{2}\d)\b', normalized_line)
                             
@@ -255,8 +268,7 @@ if uploaded_file is not None:
                                     qty1 = all_numbers[-2]
                                     qty2 = all_numbers[-1]
                             else:
-                                # 2. Fallback Strategy: If no batch code is found, intelligently grab trailing numbers from the end of the line
-                                # (Filters out prices containing decimals like 180.00)
+                                # 2. Fallback Strategy: Intelligently grab trailing numbers from the end of the line
                                 all_numbers = re.findall(r'\b\d+\b', normalized_line)
                                 if len(all_numbers) >= 2:
                                     qty1 = all_numbers[-2]
