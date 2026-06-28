@@ -112,6 +112,7 @@ PRODUCT_MAPPING = {
     "chocolate wafer 40gm": "චොකලට වේපස් 40",
     "chocolate wafer 90gm": "චොකලට වේපස් 90",
     "chocolate wafer 200gm": "චොකලට වේපස් 200",
+    "chocolate marie 100gm":"චොකලට් මාරි 100GM",
     "chocolate wafer 360gm x 3pks": "චොකලට වේපස් 360",
     "cookie assortment blue 330gm": "කුකි ඇසෝඩ්මන්ට් නිල් 330",
     "coffee wafer 200gm": "කෝපි වේපර්ස්",
