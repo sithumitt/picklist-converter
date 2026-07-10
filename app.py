@@ -95,7 +95,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Hardcoded Product Mapping Dictionary
-# UPDATED KEYS: Shortened complex strings to key identifiers to handle variance in raw files
 PRODUCT_MAPPING = {
     "aloe vera drink 1l": "කෝමාරිකා බීම ලීටර් 1",
     "aloe vera drink 200ml": "කෝමාරිකා බීම 200",
@@ -187,7 +186,7 @@ PRODUCT_MAPPING = {
     "berry flv melon jam200g": "ස්ටෝබරි ජෑම් 200",
     "berry flv melon jam300g": "ස්ටෝබරි ජෑම් 300",
     "strawberry 200g": "ස්ටෝබරි ජෑම් 200", 
-    "strawberry 300g": "ස්ටෝබරි ජෑම් 300", # Flexible Fallback matcher
+    "strawberry 300g": "ස්ටෝබරි ජෑම් 300", 
     "sesame cookies 120gm": "සෙසමිකුකීස්",
     "strawberry sparkling 250ml": "ස්ටෝබරි ස්පාක්ලින්",
     "strawberry wafer 40gm": "ස්ටෝබරි වේපස් 40",
@@ -222,8 +221,8 @@ st.markdown('<div class="sub-title">ඔබේ Picklist PDF එක සිංහ�
 # Step 1 Container Instruction Banner
 st.markdown('<div class="step-container"><strong>පියවර 1:</strong> ඔබේ මුල් පිටපතේ PDF ගොනුව පහත කොටුවට එක් කරන්න (Upload PDF File)</div>', unsafe_allow_html=True)
 
-# File Uploader
-uploaded_file = st.file_uploader("", type=["pdf"], label_visibility="collapsed")
+# File Uploader - Fixed empty label and structural warning parameters
+uploaded_file = st.file_uploader("පරිවර්තනය සඳහා PDF ගොනුවක් තෝරන්න:", type=["pdf"])
 
 if uploaded_file is not None:
     with st.spinner("දත්ත විශ්ලේෂණය කරමින් පවතී. කරුණාකර රැඳී සිටින්න..."):
@@ -303,9 +302,9 @@ if uploaded_file is not None:
         # Step 2 Container Instruction Banner
         st.markdown('<div class="step-container"><strong>පියවර 2:</strong> සකස් කරන ලද නව දත්ත පෙරදසුන පරීක්ෂා කර බාගත කරගන්න</div>', unsafe_allow_html=True)
         
-        # Displaying preview inside the custom layout card
+        # Displaying preview inside the custom layout card - Replaced use_container_width deprecation
         st.markdown('<div class="preview-card">', unsafe_allow_html=True)
-        st.dataframe(preview_data, use_container_width=True)
+        st.dataframe(preview_data, width="stretch")
         st.markdown('</div>', unsafe_allow_html=True)
         
         st.write("")  # Spacer Element
@@ -315,7 +314,7 @@ if uploaded_file is not None:
         doc.save(doc_stream)
         doc_stream.seek(0)
         
-        # Action download button
+        # Action download button - Replaced use_container_width deprecation
         st.download_button(
             label="📥 නිපදවන ලද Word ලිපිගොනුව බාගත කරගන්න (Download Document)",
             data=doc_stream,
