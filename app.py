@@ -1,4 +1,3 @@
-import os
 import io
 import re
 import pdfplumber
@@ -6,96 +5,7 @@ import pandas as pd
 from docx import Document
 import streamlit as st
 
-# Set up the web page title, icon, and layout profile
-st.set_page_config(
-    page_title="පික් ලිස්ට් පරිවර්තකය", 
-    page_icon="📋", 
-    layout="centered",
-    initial_sidebar_state="collapsed"
-)
-
-# Custom CSS for soft light blue palette, black fonts, and light green table hovers
-st.markdown("""
-    <style>
-    /* Main background and global font color */
-    .stApp {
-        background-color: #F0F4F8;
-    }
-    
-    html, body, [data-testid="stWidgetLabel"], p, div, h1, h2, h3, span {
-        color: #000000 !important;
-        font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
-    }
-    
-    /* Header title styling */
-    .main-title {
-        color: #0D47A1;
-        font-size: 2.4rem;
-        font-weight: 600;
-        text-align: center;
-        margin-bottom: 0.5rem;
-    }
-    
-    .sub-title {
-        color: #333333;
-        font-size: 1.1rem;
-        text-align: center;
-        margin-bottom: 2.5rem;
-    }
-    
-    /* Light Blue elegant card styling for data preview */
-    .preview-card {
-        background-color: #FFFFFF;
-        border-radius: 8px;
-        padding: 1.5rem;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.02), 0 1px 3px rgba(0,0,0,0.05);
-        border: 2px solid #BBDEFB;
-        margin-top: 1.5rem;
-    }
-    
-    /* Force Dataframe tables to use light green highlight color during hovers instead of black */
-    [data-testid="stTable"] tr:hover, 
-    [data-testid="stDataFrame"] tr:hover,
-    div[data-role="grid"] div[role="row"]:hover {
-        background-color: #E8F5E9 !important;
-    }
-    
-    /* Ensure internal canvas data viewer matches light cell styling accents */
-    .glideDataEditor-canvas {
-        --bg-color-hover: #E8F5E9 !important;
-        --accent-color: #C8E6C9 !important;
-    }
-    
-    /* Soft Blue Step indicators style */
-    .step-container {
-        background-color: #E3F2FD;
-        padding: 1rem;
-        border-left: 5px solid #2196F3;
-        border-radius: 4px;
-        margin-bottom: 1.5rem;
-        color: #000000;
-        font-weight: 500;
-    }
-    
-    /* File Uploader custom styling adjustments */
-    [data-testid="stFileUploaderDropzone"] {
-        background-color: #FFFFFF;
-        border: 2px dashed #90CAF9 !important;
-        border-radius: 8px;
-    }
-    
-    /* Custom style tables to maintain black text grid lines */
-    table {
-        color: #000000 !important;
-    }
-    
-    /* Hide default Streamlit decorations */
-    footer {visibility: hidden;}
-    #MainMenu {visibility: hidden;}
-    </style>
-""", unsafe_allow_html=True)
-
-# Hardcoded Product Mapping Dictionary
+# Product Mapping Dictionary
 PRODUCT_MAPPING = {
     "aloe vera drink 1l": "කෝමාරිකා බීම ලීටර් 1",
     "aloe vera drink 200ml": "කෝමාරිකා බීම 200",
@@ -209,28 +119,23 @@ PRODUCT_MAPPING = {
 }
 
 def clean_text_for_matching(text):
-    """Removes slashes, dots, quotes, and extra whitespace for fuzzy matching."""
     if not text:
         return ""
     cleaned = text.replace('"', '').replace('/', ' ').replace('.', ' ').replace('-', ' ')
     return " ".join(cleaned.lower().split())
 
-# UI Header Layout Elements
-st.markdown('<div class="main-title">📋 පික් ලිස්ට් එකේ බඩු පරිවර්තකය</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-title">ඔබේ Picklist PDF එක සිංහල Word ගොනුවක් බවට ක්ෂණිකව පරිවර්තනය කරන්න</div>', unsafe_allow_html=True)
+# App Interface Titles
+st.title("📋 පික් ලිස්ට් එකේ බඩු පරිවර්තකය")
+st.write("ඔබේ Picklist PDF එක සිංහල Word ගොනුවක් බවට ක්ෂණිකව පරිවර්තනය කරන්න")
 
-# Step 1 Container Instruction Banner
-st.markdown('<div class="step-container"><strong>පියවර 1:</strong> ඔබේ මුල් පිටපතේ PDF ගොනුව පහත කොටුවට එක් කරන්න (Upload PDF File)</div>', unsafe_allow_html=True)
-
-# File Uploader - With functional accessible label 
-uploaded_file = st.file_uploader("පරිවර්තනය සඳහා PDF ගොනුවක් තෝරන්න:", type=["pdf"])
+# Main File Input
+uploaded_file = st.file_uploader("පරිවර්තනය සඳහා PDF ගොනුවක් තෝරන්න (Select PDF File)", type=["pdf"])
 
 if uploaded_file is not None:
-    with st.spinner("දත්ත විශ්ලේෂණය කරමින් පවතී. කරුණාකර රැඳී සිටින්න..."):
-        # Initialize structured Word Document
+    with st.spinner("දත්ත විශ්ලේෂණය කරමින් පවතී..."):
+        # Setup Output Word File Structure
         doc = Document()
         doc.add_heading('පික් ලිස්ට් එකේ බඩු', level=1)
-        
         table = doc.add_table(rows=1, cols=3)
         table.style = 'Table Grid'
         
@@ -241,10 +146,9 @@ if uploaded_file is not None:
         
         matched_count = 0
         preview_data = []
-        
-        # Keep track of matched entries to avoid duplicate table assignments
         processed_lines = set()
         
+        # Parse PDF Document content
         with pdfplumber.open(uploaded_file) as pdf:
             for page_num, page in enumerate(pdf.pages):
                 text_content = page.extract_text()
@@ -260,7 +164,6 @@ if uploaded_file is not None:
                     for english_key, sinhala_val in PRODUCT_MAPPING.items():
                         matchable_key = clean_text_for_matching(english_key)
                         
-                        # Flexible Condition check: Exact match OR both keywords exist independently in line
                         is_match = False
                         if matchable_key in matchable_line:
                             is_match = True
@@ -271,10 +174,9 @@ if uploaded_file is not None:
                         if is_match and line_key not in processed_lines:
                             processed_lines.add(line_key)
                             
-                            # 1. Primary Strategy: Look for standard batch identifiers (like CG1, CG2, IN1 etc.)
                             batch_match = re.search(r'\b([A-Z]{2}\d)\b', normalized_line)
-                            
                             qty1, qty2 = "0", "0"
+                            
                             if batch_match:
                                 pre_batch_text = normalized_line[:batch_match.start()].strip()
                                 all_numbers = re.findall(r'\d+', pre_batch_text)
@@ -282,7 +184,6 @@ if uploaded_file is not None:
                                     qty1 = all_numbers[-2]
                                     qty2 = all_numbers[-1]
                             else:
-                                # 2. Fallback Strategy: Intelligently grab trailing numbers from the end of the line
                                 all_numbers = re.findall(r'\b\d+\b', normalized_line)
                                 if len(all_numbers) >= 2:
                                     qty1 = all_numbers[-2]
@@ -300,31 +201,22 @@ if uploaded_file is not None:
     if matched_count > 0:
         st.success(f"🎉 සාර්ථකයි! ගැළපෙන භාණ්ඩ පේළි {matched_count} ක් සාර්ථකව පරිවර්තනය කරන ලදී.")
         
-        # Step 2 Container Instruction Banner
-        st.markdown('<div class="step-container"><strong>පියවර 2:</strong> සකස් කරන ලද නව දත්ත පෙරදසුන පරීක්ෂා කර බාගත කරගන්න</div>', unsafe_allow_html=True)
-        
-        # Explicit DataFrame casting to cleanly pass structural configuration to UI component
+        # Render Table Preview Natively
+        st.subheader("දත්ත පෙරදසුන (Data Preview)")
         df_preview = pd.DataFrame(preview_data)
-        
-        # Displaying preview inside the custom layout card
-        st.markdown('<div class="preview-card">', unsafe_allow_html=True)
         st.dataframe(df_preview, use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
         
-        st.write("")  # Spacer Element
-        
-        # Render output document to byte storage array stream
+        # Prepare Document download stream bytes
         doc_stream = io.BytesIO()
         doc.save(doc_stream)
         doc_stream.seek(0)
         
-        # Action download button
         st.download_button(
-            label="📥 නිපදවන ලද Word ලිපිගොනුව බාගත කරගන්න (Download Document)",
+            label="📥 නිපදවන ලද Word ලිපිගොනුව බාගත කරගන්න (Download Word Document)",
             data=doc_stream,
             file_name="පික්_ලිස්ට්_එකේ_බඩු.docx",
             mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             use_container_width=True
         )
     else:
-        st.error("⚠️ දෝෂයකි: අප්ලෝඩ් කරන ලද PDF ගොනුවේ තිබූ කිසිදු භාණ්ඩයක් අපගේ නාමාවලිය සමඟ ගැළපුණේ නැත. කරුණාකර වෙනත් ගොනුවක් උත්සාහ කරන්න.")
+        st.error("⚠️ දෝෂයකි: අප්ලෝඩ් කරන ලද PDF ගොනුවේ තිබූ කිසිදු භාණ්ඩයක් අපගේ නාමාවලිය සමඟ ගැළපුණේ නැත.")
