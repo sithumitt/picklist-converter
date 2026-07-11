@@ -2,6 +2,7 @@ import os
 import io
 import re
 import pdfplumber
+import pandas as pd
 from docx import Document
 import streamlit as st
 
@@ -221,7 +222,7 @@ st.markdown('<div class="sub-title">ඔබේ Picklist PDF එක සිංහ�
 # Step 1 Container Instruction Banner
 st.markdown('<div class="step-container"><strong>පියවර 1:</strong> ඔබේ මුල් පිටපතේ PDF ගොනුව පහත කොටුවට එක් කරන්න (Upload PDF File)</div>', unsafe_allow_html=True)
 
-# File Uploader - Fixed empty label and structural warning parameters
+# File Uploader - With functional accessible label 
 uploaded_file = st.file_uploader("පරිවර්තනය සඳහා PDF ගොනුවක් තෝරන්න:", type=["pdf"])
 
 if uploaded_file is not None:
@@ -302,9 +303,12 @@ if uploaded_file is not None:
         # Step 2 Container Instruction Banner
         st.markdown('<div class="step-container"><strong>පියවර 2:</strong> සකස් කරන ලද නව දත්ත පෙරදසුන පරීක්ෂා කර බාගත කරගන්න</div>', unsafe_allow_html=True)
         
-        # Displaying preview inside the custom layout card - Replaced use_container_width deprecation
+        # Explicit DataFrame casting to cleanly pass structural configuration to UI component
+        df_preview = pd.DataFrame(preview_data)
+        
+        # Displaying preview inside the custom layout card
         st.markdown('<div class="preview-card">', unsafe_allow_html=True)
-        st.dataframe(preview_data, width="stretch")
+        st.dataframe(df_preview, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
         
         st.write("")  # Spacer Element
@@ -314,7 +318,7 @@ if uploaded_file is not None:
         doc.save(doc_stream)
         doc_stream.seek(0)
         
-        # Action download button - Replaced use_container_width deprecation
+        # Action download button
         st.download_button(
             label="📥 නිපදවන ලද Word ලිපිගොනුව බාගත කරගන්න (Download Document)",
             data=doc_stream,
